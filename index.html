@@ -1,25 +1,305 @@
 <!DOCTYPE html>
-<html lang=""en">
+<html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <title>MY OWN GAMER OS</title>
-    <link rel="stylesheet" href="style.css" />
-
-
-
+<meta charset="UTF-8">
+<title>Shyam Web OS</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="desktop">
-        <!--code for da icons-->
-        <div class="desktop-icon" onclick="openwindow('About')">
-            <div class="icon">A</div>
-            <div class="label">About</div>
-        </div>
-    </div>
-     <div class="desktop-icon" onclick="openWindow('Notes')">
-      <div class="icon icon-notes">N</div>
-      <div class="label">Notes</div>
-    </div>
-    
+<div id="desktop">
+<div class="desktop-icon" onclick="openWindow('About')">
+<div class="icon">A</div>
+<div class="label">About</div>
+</div>
+<div class="desktop-icon" onclick="openWindow('Notes')">
+<div class="icon icon-notes">N</div>
+<div class="label">Notes</div>
+</div>
+<div class="desktop-icon" onclick="openWindow('Terminal')">
+<div class="icon icon-terminal">T</div>
+<div class="label">Terminal</div>
+</div>
+<div class="desktop-icon" onclick="openFlappyBird()">
+<div class="icon" style="background:#f39c12">F</div>
+<div class="label">Flappy</div>
+</div>
+<div class="desktop-icon" onclick="openFPSGame()">
+<div class="icon" style="background:#c0392b">G</div>
+<div class="label">FPS</div>
+</div>
+<div class="desktop-icon" onclick="openWindow('Browser')">
+<div class="icon" style="background:#2980b9">B</div>
+<div class="label">Browser</div>
+</div>
+<div class="desktop-icon" onclick="openWindow('Explorer')">
+<div class="icon" style="background:#8e44ad">E</div>
+<div class="label">Explorer</div>
+</div>
+</div>
+<div id="taskbar">
+<button id="start-btn">Start</button>
+<div id="minimized-apps"></div>
+<div id="clock">00:00</div>
+</div>
+<script>
+function updateClock(){
+const now=new Date();
+const h=String(now.getHours()).padStart(2,'0');
+const m=String(now.getMinutes()).padStart(2,'0');
+document.getElementById('clock').textContent=h+':'+m;
+}
+setInterval(updateClock,1000);
+updateClock();
+let zIndexCounter=10;
+let activeWindow=null;
+let windowCount=0;
+function openWindow(appName){
+const win=document.createElement('div');
+win.className='window';
+win.dataset.appName=appName;
+win.dataset.windowId='win'+windowCount;
+windowCount++;
+win.style.left=(50+Math.random()*100)+'px';
+win.style.top=(50+Math.random()*100)+'px';
+win.style.zIndex=++zIndexCounter;
+const titleBar=document.createElement('div');
+titleBar.className='title-bar';
+const title=document.createElement('div');
+title.className='title';
+title.textContent=appName;
+const controls=document.createElement('div');
+controls.className='controls';
+const minBtn=document.createElement('button');
+minBtn.className='control-btn min-btn';
+minBtn.title='Minimize';
+minBtn.onclick=function(e){
+e.stopPropagation();
+minimizeWindow(win);
+};
+const closeBtn=document.createElement('button');
+closeBtn.className='control-btn close-btn';
+closeBtn.title='Close';
+closeBtn.onclick=function(e){
+e.stopPropagation();
+removeTaskButton(win);
+win.remove();
+};
+controls.appendChild(minBtn);
+controls.appendChild(closeBtn);
+titleBar.appendChild(title);
+titleBar.appendChild(controls);
+const content=document.createElement('div');
+content.className='content';
+content.innerHTML=getAppContent(appName);
+win.appendChild(titleBar);
+win.appendChild(content);
+document.getElementById('desktop').appendChild(win);
+win.onmousedown=function(){
+win.style.zIndex=++zIndexCounter;
+activeWindow=win;
+};
+makeDraggable(win,titleBar);
+}
+function minimizeWindow(win){
+win.style.display='none';
+const taskButton=document.createElement('button');
+taskButton.className='minimized-btn';
+taskButton.textContent=win.dataset.appName;
+taskButton.dataset.windowId=win.dataset.windowId;
+taskButton.onclick=function(){
+win.style.display='flex';
+win.style.zIndex=++zIndexCounter;
+taskButton.remove();
+};
+document.getElementById('minimized-apps').appendChild(taskButton);
+}
+function removeTaskButton(win){
+const buttons=document.querySelectorAll('.minimized-btn');
+buttons.forEach(function(button){
+if(button.dataset.windowId===win.dataset.windowId){
+button.remove();
+}
+});
+}
+function openFlappyBird(){
+window.open('https://coderrcboy.github.io/flappybird./','_blank');
+}
+function openFPSGame(){
+window.open('https://coderrcboy.github.io/FPS-game/','_blank');
+}
+function getAppContent(appName){
+if(appName==='About'){
+return '<h3 style="margin-top:0">Shyam Web OS</h3>'+
+'<p>A small operating-system style website.</p>'+
+'<p>Built with HTML, CSS, and JavaScript.</p>'+
+'<p>Drag windows, minimize them, or close them.</p>';
+}
+if(appName==='Notes'){
+const savedNotes=localStorage.getItem('shyam_notes')||'';
+return '<h3 style="margin-top:0">Notes</h3>'+
+'<textarea id="notes-area" class="notes-area" placeholder="Type your notes here...">'+escapeHtml(savedNotes)+'</textarea>'+
+'<button id="save-notes" style="margin-top:6px;padding:4px 8px;cursor:pointer;">Save</button>'+
+'<script>'+
+'(function(){'+
+'var area=document.getElementById("notes-area");'+
+'var saveBtn=document.getElementById("save-notes");'+
+'if(!area||!saveBtn)return;'+
+'saveBtn.onclick=function(){'+
+'localStorage.setItem("shyam_notes",area.value);'+
+'alert("Notes saved! You can see them as files in Explorer.");'+
+'};'+
+'})();'+
+'<\/script>';
+}
+if(appName==='Terminal'){
+return '<h3 style="margin-top:0">Terminal</h3>'+
+'<div class="terminal-window">'+
+'<div>shyam@webos:~$ echo "Hello from Web OS!"</div>'+
+'<div>Hello from Web OS!</div>'+
+'<div>shyam@webos:~$ _</div>'+
+'</div>';
+}
+if(appName==='Browser'){
+return '<div style="display:flex;flex-direction:column;height:100%;">'+
+'<div style="display:flex;gap:6px;padding:6px;background:#162433;border-bottom:1px solid #34495e;">'+
+'<input id="url-input" type="text" value="https://google.com" style="flex:1;padding:4px;border-radius:4px;border:1px solid #34495e;background:#0f1720;color:#eaeaea;">'+
+'<button id="go-btn" style="padding:4px 8px;border-radius:4px;border:none;background:#3498db;color:white;cursor:pointer;">Go</button>'+
+'</div>'+
+'<iframe id="browser-frame" src="https://www.google.com/webhp?igu=1" style="flex:1;border:none;background:#fff;"></iframe>'+
+'</div>'+
+'<script>'+
+'(function(){'+
+'var input=document.getElementById("url-input");'+
+'var goBtn=document.getElementById("go-btn");'+
+'var frame=document.getElementById("browser-frame");'+
+'if(!input||!goBtn||!frame)return;'+
+'function loadUrl(){'+
+'var url=input.value.trim();'+
+'if(!url)return;'+
+'if(!/^https?:\/\//i.test(url)){'+
+'url="https://"+url;'+
+'}'+
+'if(url.indexOf("google.com")===-1){'+
+'window.open(url,"_blank");'+
+'}else{'+
+'frame.src=url;'+
+'}'+
+'}'+
+'goBtn.onclick=loadUrl;'+
+'input.addEventListener("keydown",function(e){'+
+'if(e.key==="Enter"){'+
+'loadUrl();'+
+'}'+
+'});'+
+'})();'+
+'<\/script>';
+}
+if(appName==='Explorer'){
+var files=JSON.parse(localStorage.getItem('shyam_files')||'[]');
+var notesContent=localStorage.getItem('shyam_notes')||'';
+if(notesContent&&files.length===0){
+files=[{name:'notes.txt',content:notesContent}];
+localStorage.setItem('shyam_files',JSON.stringify(files));
+}
+files=JSON.parse(localStorage.getItem('shyam_files')||'[]');
+var filesHtml='';
+if(files.length===0){
+filesHtml='<p>No files yet.</p>';
+}else{
+for(var i=0;i<files.length;i++){
+var f=files[i];
+var safeName=(f.name||'file'+i).replace(/"/g,'&quot;');
+filesHtml+='<div class="file-item" data-idx="'+i+'">'+
+'<div class="file-icon">📄</div>'+
+'<div class="file-name">'+safeName+'</div>'+
+'</div>';
+}
+}
+return '<h3 style="margin-top:0">File Explorer</h3>'+
+'<div id="files-list" style="display:flex;flex-wrap:wrap;gap:10px;">'+filesHtml+'</div>'+
+'<div style="margin-top:12px;border-top:1px solid #34495e;padding-top:8px;">'+
+'<input id="new-file-name" type="text" placeholder="File name" style="padding:4px;border-radius:4px;border:1px solid #34495e;background:#0f1720;color:#eaeaea;">'+
+'<button id="create-file-btn" style="margin-left:6px;padding:4px 8px;border-radius:4px;border:none;background:#27ae60;color:white;cursor:pointer;">Create</button>'+
+'</div>'+
+'<script>'+
+'(function(){'+
+'var filesList=document.getElementById("files-list");'+
+'var nameInput=document.getElementById("new-file-name");'+
+'var createBtn=document.getElementById("create-file-btn");'+
+'if(!nameInput||!createBtn)return;'+
+'function refreshExplorer(){'+
+'var files=JSON.parse(localStorage.getItem("shyam_files")||"[]");'+
+'filesList.innerHTML="";'+
+'if(files.length===0){'+
+'filesList.innerHTML="<p>No files yet.</p>";'+
+'return;'+
+'}'+
+'for(var i=0;i<files.length;i++){'+
+'var f=files[i];'+
+'var div=document.createElement("div");'+
+'div.className="file-item";'+
+'div.dataset.idx=i;'+
+'div.innerHTML="<div class=\\"file-icon\\">📄</div><div class=\\"file-name\\">'+escapeHtmlForJs(f.name||"file"+i)+'</div>";'+
+'filesList.appendChild(div);'+
+'}'+
+'}'+
+'createBtn.onclick=function(){'+
+'var name=nameInput.value.trim();'+
+'if(!name){'+
+'name="file"+Date.now()+".txt";'+
+'}'+
+'var files=JSON.parse(localStorage.getItem("shyam_files")||"[]");'+
+'files.push({name:name,content:""});'+
+'localStorage.setItem("shyam_files",JSON.stringify(files));'+
+'nameInput.value="";'+
+'refreshExplorer();'+
+'};'+
+'})();'+
+'<\/script>';
+}
+return '<p>App: '+appName+'</p>';
+}
+function escapeHtml(str){
+return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function escapeHtmlForJs(str){
+return String(str).replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function makeDraggable(win,handle){
+var offsetX=0;
+var offsetY=0;
+var dragging=false;
+handle.onmousedown=function(e){
+if(e.target.classList.contains('control-btn')){
+return;
+}
+dragging=true;
+offsetX=e.clientX-win.offsetLeft;
+offsetY=e.clientY-win.offsetTop;
+win.style.zIndex=++zIndexCounter;
+activeWindow=win;
+e.preventDefault();
+};
+document.addEventListener('mousemove',function(e){
+if(!dragging){
+return;
+}
+var x=e.clientX-offsetX;
+var y=e.clientY-offsetY;
+var maxX=window.innerWidth-win.offsetWidth-10;
+var maxY=window.innerHeight-win.offsetHeight-50;
+x=Math.max(0,Math.min(x,maxX));
+y=Math.max(0,Math.min(y,maxY));
+win.style.left=x+'px';
+win.style.top=y+'px';
+});
+document.addEventListener('mouseup',function(){
+dragging=false;
+});
+}
+document.getElementById('start-btn').onclick=function(){
+openWindow('About');
+};
+</script>
 </body>
 </html>
