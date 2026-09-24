@@ -1,308 +1,582 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Shyam Web OS</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Shyam Web OS</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f1720 url('bg.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: #eaeaea;
+      overflow: hidden;
+      height: 100vh;
+      user-select: none;
+    }
+    
+    /* LOGIN SCREEN */
+    #login-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 9999;
+    }
+    .login-box {
+      background: #1b2735;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #34495e;
+      width: 260px;
+      text-align: center;
+    }
+    .login-box h2 { margin: 0 0 10px 0; }
+    
+    /* DESKTOP */
+    #os-container { display: none; }
+    #desktop { position: relative; height: calc(100vh - 40px); padding: 10px; }
+    .desktop-icon {
+      width: 80px;
+      text-align: center;
+      margin: 10px;
+      display: inline-block;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+    }
+    .desktop-icon:hover { background: rgba(255, 255, 255, 0.1); }
+    .desktop-icon .icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 4px;
+      background: #3498db;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 20px;
+    }
+    .desktop-icon .icon-notes { background: #27ae60; }
+    .desktop-icon .icon-terminal { background: #e67e22; }
+    .desktop-icon .label { font-size: 12px; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+    
+    /* CLOCK WIDGET */
+    .clock-widget {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(20, 30, 40, 0.8);
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #34495e;
+      text-align: right;
+    }
+    #widget-time { font-size: 28px; font-weight: bold; }
+    #widget-date { font-size: 12px; opacity: 0.8; }
+    
+    /* WINDOW SYSTEM */
+    .window {
+      position: absolute;
+      width: 340px;
+      height: 240px;
+      background: #1b2735;
+      border: 1px solid #34495e;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .window.browser-full {
+      width: calc(100% - 40px) !important;
+      height: calc(100vh - 90px) !important;
+      left: 20px !important;
+      top: 20px !important;
+    }
+    .title-bar {
+      background: #2c3e50;
+      padding: 6px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: grab;
+    }
+    .title-bar:active { cursor: grabbing; }
+    .title-bar .title { font-size: 13px; font-weight: 600; }
+    .title-bar .controls { display: flex; gap: 6px; }
+    .control-btn { width: 14px; height: 14px; border-radius: 50%; border: none; cursor: pointer; }
+    .close-btn { background: #e74c3c; }
+    .min-btn { background: #f1c40f; }
+    .content { flex: 1; padding: 10px; overflow: auto; font-size: 13px; user-select: text; }
+    
+    /* APPS UI */
+    .notes-area {
+      width: 100%;
+      height: 120px;
+      background: #0f1720;
+      color: #eaeaea;
+      border: 1px solid #34495e;
+      border-radius: 4px;
+      padding: 6px;
+      resize: none;
+    }
+    .terminal-window {
+      background: #0b1220;
+      padding: 8px;
+      border-radius: 4px;
+      height: 140px;
+      overflow: auto;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    
+    /* TASKBAR */
+    #taskbar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: rgba(20, 30, 40, 0.9);
+      border-top: 1px solid #34495e;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      gap: 10px;
+    }
+    #start-btn {
+      background: #3498db;
+      border: none;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    #minimized-apps { display: flex; gap: 6px; align-items: center; }
+    .minimized-btn {
+      background: #34495e;
+      border: none;
+      color: white;
+      padding: 5px 9px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    #clock { margin-left: auto; font-size: 13px; opacity: 0.9; }
+    #user-info { font-size: 12px; opacity: 0.8; margin-left: 8px; }
+    #logout-btn {
+      background: #e74c3c;
+      border: none;
+      color: white;
+      padding: 5px 9px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 6px;
+    }
+    
+    /* EXPLORER UI */
+    .file-item {
+      width: 70px;
+      text-align: center;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+    }
+    .file-item:hover { background: rgba(255, 255, 255, 0.08); }
+    .file-icon { font-size: 28px; margin-bottom: 4px; }
+    .file-name { font-size: 11px; word-break: break-word; }
+  </style>
 </head>
 <body>
-<div id="desktop">
-<div class="desktop-icon" onclick="openWindow('About')">
-<div class="icon">A</div>
-<div class="label">About</div>
-</div>
-<div class="desktop-icon" onclick="openWindow('Notes')">
-<div class="icon icon-notes">N</div>
-<div class="label">Notes</div>
-</div>
-<div class="desktop-icon" onclick="openWindow('Terminal')">
-<div class="icon icon-terminal">T</div>
-<div class="label">Terminal</div>
-</div>
-<div class="desktop-icon" onclick="openFlappyBird()">
-<div class="icon" style="background:#f39c12">F</div>
-<div class="label">Flappy</div>
-</div>
-<div class="desktop-icon" onclick="openFPSGame()">
-<div class="icon" style="background:#c0392b">G</div>
-<div class="label">FPS</div>
-</div>
-<div class="desktop-icon" onclick="openWindow('Browser')">
-<div class="icon" style="background:#2980b9">B</div>
-<div class="label">Browser</div>
-</div>
-<div class="desktop-icon" onclick="openWindow('Explorer')">
-<div class="icon" style="background:#8e44ad">E</div>
-<div class="label">Explorer</div>
-</div>
-</div>
-<div id="taskbar">
-<button id="start-btn">Start</button>
-<div id="minimized-apps"></div>
-<div id="clock">00:00</div>
-</div>
-<script>
-function updateClock(){
-const now=new Date();
-const h=String(now.getHours()).padStart(2,'0');
-const m=String(now.getMinutes()).padStart(2,'0');
-document.getElementById('clock').textContent=h+':'+m;
-}
-setInterval(updateClock,1000);
-updateClock();
-let zIndexCounter=10;
-let activeWindow=null;
-let windowCount=0;
-function openWindow(appName){
-const win=document.createElement('div');
-win.className='window';
-win.dataset.appName=appName;
-win.dataset.windowId='win'+windowCount;
-windowCount++;
-win.style.left=(50+Math.random()*100)+'px';
-win.style.top=(50+Math.random()*100)+'px';
-win.style.zIndex=++zIndexCounter;
-const titleBar=document.createElement('div');
-titleBar.className='title-bar';
-const title=document.createElement('div');
-title.className='title';
-title.textContent=appName;
-const controls=document.createElement('div');
-controls.className='controls';
-const minBtn=document.createElement('button');
-minBtn.className='control-btn min-btn';
-minBtn.title='Minimize';
-minBtn.onclick=function(e){
-e.stopPropagation();
-minimizeWindow(win);
-};
-const closeBtn=document.createElement('button');
-closeBtn.className='control-btn close-btn';
-closeBtn.title='Close';
-closeBtn.onclick=function(e){
-e.stopPropagation();
-removeTaskButton(win);
-win.remove();
-};
-controls.appendChild(minBtn);
-controls.appendChild(closeBtn);
-titleBar.appendChild(title);
-titleBar.appendChild(controls);
-if(appName==='Browser'){
-win.classList.add('browser-full');
-}
-const content=document.createElement('div');
-content.className='content';
-content.innerHTML=getAppContent(appName);
-win.appendChild(titleBar);
-win.appendChild(content);
-document.getElementById('desktop').appendChild(win);
-win.onmousedown=function(){
-win.style.zIndex=++zIndexCounter;
-activeWindow=win;
-};
-makeDraggable(win,titleBar);
-}
-function minimizeWindow(win){
-win.style.display='none';
-const taskButton=document.createElement('button');
-taskButton.className='minimized-btn';
-taskButton.textContent=win.dataset.appName;
-taskButton.dataset.windowId=win.dataset.windowId;
-taskButton.onclick=function(){
-win.style.display='flex';
-win.style.zIndex=++zIndexCounter;
-taskButton.remove();
-};
-document.getElementById('minimized-apps').appendChild(taskButton);
-}
-function removeTaskButton(win){
-const buttons=document.querySelectorAll('.minimized-btn');
-buttons.forEach(function(button){
-if(button.dataset.windowId===win.dataset.windowId){
-button.remove();
-}
-});
-}
-function openFlappyBird(){
-window.open('https://coderrcboy.github.io/flappybird./','_blank');
-}
-function openFPSGame(){
-window.open('https://coderrcboy.github.io/FPS-game/','_blank');
-}
-function getAppContent(appName){
-if(appName==='About'){
-return '<h3 style="margin-top:0">Shyam Web OS</h3>'+
-'<p>A small operating-system style website.</p>'+
-'<p>Built with HTML, CSS, and JavaScript.</p>'+
-'<p>Drag windows, minimize them, or close them.</p>';
-}
-if(appName==='Notes'){
-const savedNotes=localStorage.getItem('shyam_notes')||'';
-return '<h3 style="margin-top:0">Notes</h3>'+
-'<textarea id="notes-area" class="notes-area" placeholder="Type your notes here...">'+escapeHtml(savedNotes)+'</textarea>'+
-'<button id="save-notes" style="margin-top:6px;padding:4px 8px;cursor:pointer;">Save</button>'+
-'<script>'+
-'(function(){'+
-'var area=document.getElementById("notes-area");'+
-'var saveBtn=document.getElementById("save-notes");'+
-'if(!area||!saveBtn)return;'+
-'saveBtn.onclick=function(){'+
-'localStorage.setItem("shyam_notes",area.value);'+
-'alert("Notes saved! You can see them as files in Explorer.");'+
-'};'+
-'})();'+
-'<\/script>';
-}
-if(appName==='Terminal'){
-return '<h3 style="margin-top:0">Terminal</h3>'+
-'<div class="terminal-window">'+
-'<div>shyam@webos:~$ echo "Hello from Web OS!"</div>'+
-'<div>Hello from Web OS!</div>'+
-'<div>shyam@webos:~$ _</div>'+
-'</div>';
-}
-if(appName==='Browser'){
-return '<div style="display:flex;flex-direction:column;height:100%;">'+
-'<div style="display:flex;gap:6px;padding:6px;background:#162433;border-bottom:1px solid #34495e;">'+
-'<input id="url-input" type="text" value="https://google.com" style="flex:1;padding:4px;border-radius:4px;border:1px solid #34495e;background:#0f1720;color:#eaeaea;">'+
-'<button id="go-btn" style="padding:4px 8px;border-radius:4px;border:none;background:#3498db;color:white;cursor:pointer;">Go</button>'+
-'</div>'+
-'<iframe id="browser-frame" src="https://www.google.com/webhp?igu=1" style="flex:1;border:none;background:#fff;"></iframe>'+
-'</div>'+
-'<script>'+
-'(function(){'+
-'var input=document.getElementById("url-input");'+
-'var goBtn=document.getElementById("go-btn");'+
-'var frame=document.getElementById("browser-frame");'+
-'if(!input||!goBtn||!frame)return;'+
-'function loadUrl(){'+
-'var url=input.value.trim();'+
-'if(!url)return;'+
-'if(!/^https?:\/\//i.test(url)){'+
-'url="https://"+url;'+
-'}'+
-'if(url.indexOf("google.com")===-1){'+
-'window.open(url,"_blank");'+
-'}else{'+
-'frame.src=url;'+
-'}'+
-'}'+
-'goBtn.onclick=loadUrl;'+
-'input.addEventListener("keydown",function(e){'+
-'if(e.key==="Enter"){'+
-'loadUrl();'+
-'}'+
-'});'+
-'})();'+
-'<\/script>';
-}
-if(appName==='Explorer'){
-var files=JSON.parse(localStorage.getItem('shyam_files')||'[]');
-var notesContent=localStorage.getItem('shyam_notes')||'';
-if(notesContent&&files.length===0){
-files=[{name:'notes.txt',content:notesContent}];
-localStorage.setItem('shyam_files',JSON.stringify(files));
-}
-files=JSON.parse(localStorage.getItem('shyam_files')||'[]');
-var filesHtml='';
-if(files.length===0){
-filesHtml='<p>No files yet.</p>';
-}else{
-for(var i=0;i<files.length;i++){
-var f=files[i];
-var safeName=(f.name||'file'+i).replace(/"/g,'&quot;');
-filesHtml+='<div class="file-item" data-idx="'+i+'">'+
-'<div class="file-icon">📄</div>'+
-'<div class="file-name">'+safeName+'</div>'+
-'</div>';
-}
-}
-return '<h3 style="margin-top:0">File Explorer</h3>'+
-'<div id="files-list" style="display:flex;flex-wrap:wrap;gap:10px;">'+filesHtml+'</div>'+
-'<div style="margin-top:12px;border-top:1px solid #34495e;padding-top:8px;">'+
-'<input id="new-file-name" type="text" placeholder="File name" style="padding:4px;border-radius:4px;border:1px solid #34495e;background:#0f1720;color:#eaeaea;">'+
-'<button id="create-file-btn" style="margin-left:6px;padding:4px 8px;border-radius:4px;border:none;background:#27ae60;color:white;cursor:pointer;">Create</button>'+
-'</div>'+
-'<script>'+
-'(function(){'+
-'var filesList=document.getElementById("files-list");'+
-'var nameInput=document.getElementById("new-file-name");'+
-'var createBtn=document.getElementById("create-file-btn");'+
-'if(!nameInput||!createBtn)return;'+
-'function refreshExplorer(){'+
-'var files=JSON.parse(localStorage.getItem("shyam_files")||"[]");'+
-'filesList.innerHTML="";'+
-'if(files.length===0){'+
-'filesList.innerHTML="<p>No files yet.</p>";'+
-'return;'+
-'}'+
-'for(var i=0;i<files.length;i++){'+
-'var f=files[i];'+
-'var div=document.createElement("div");'+
-'div.className="file-item";'+
-'div.dataset.idx=i;'+
-'div.innerHTML="<div class=\\"file-icon\\">📄</div><div class=\\"file-name\\">'+escapeHtmlForJs(f.name||"file"+i)+'</div>";'+
-'filesList.appendChild(div);'+
-'}'+
-'}'+
-'createBtn.onclick=function(){'+
-'var name=nameInput.value.trim();'+
-'if(!name){'+
-'name="file"+Date.now()+".txt";'+
-'}'+
-'var files=JSON.parse(localStorage.getItem("shyam_files")||"[]");'+
-'files.push({name:name,content:""});'+
-'localStorage.setItem("shyam_files",JSON.stringify(files));'+
-'nameInput.value="";'+
-'refreshExplorer();'+
-'};'+
-'})();'+
-'<\/script>';
-}
-return '<p>App: '+appName+'</p>';
-}
-function escapeHtml(str){
-return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
-function escapeHtmlForJs(str){
-return String(str).replace(/"/g,"&quot;").replace(/'/g,"&#39;");
-}
-function makeDraggable(win,handle){
-var offsetX=0;
-var offsetY=0;
-var dragging=false;
-handle.onmousedown=function(e){
-if(e.target.classList.contains('control-btn')){
-return;
-}
-dragging=true;
-offsetX=e.clientX-win.offsetLeft;
-offsetY=e.clientY-win.offsetTop;
-win.style.zIndex=++zIndexCounter;
-activeWindow=win;
-e.preventDefault();
-};
-document.addEventListener('mousemove',function(e){
-if(!dragging){
-return;
-}
-var x=e.clientX-offsetX;
-var y=e.clientY-offsetY;
-var maxX=window.innerWidth-win.offsetWidth-10;
-var maxY=window.innerHeight-win.offsetHeight-50;
-x=Math.max(0,Math.min(x,maxX));
-y=Math.max(0,Math.min(y,maxY));
-win.style.left=x+'px';
-win.style.top=y+'px';
-});
-document.addEventListener('mouseup',function(){
-dragging=false;
-});
-}
-document.getElementById('start-btn').onclick=function(){
-openWindow('About');
-};
-</script>
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen">
+    <div class="login-box">
+      <h2>Login</h2>
+      <input id="username-input" type="text" placeholder="Username" style="width:100%;padding:8px;margin:8px 0;border-radius:4px;border:1px solid #34495e;background:#0f1720;color:#eaeaea;">
+      <button id="login-btn" style="width:100%;padding:8px;margin-top:6px;border-radius:4px;border:none;background:#3498db;color:white;cursor:pointer;">Login</button>
+      <p id="login-msg" style="margin-top:8px;font-size:12px;color:#e74c3c;"></p>
+    </div>
+  </div>
+
+  <!-- MAIN OS -->
+  <div id="os-container">
+    <div id="desktop">
+      <div id="clock-widget" class="clock-widget">
+        <div id="widget-time"></div>
+        <div id="widget-date"></div>
+      </div>
+
+      <div class="desktop-icon" onclick="openWindow('About')">
+        <div class="icon">A</div><div class="label">About</div>
+      </div>
+      <div class="desktop-icon" onclick="openWindow('Notes')">
+        <div class="icon icon-notes">N</div><div class="label">Notes</div>
+      </div>
+      <div class="desktop-icon" onclick="openWindow('Terminal')">
+        <div class="icon icon-terminal">T</div><div class="label">Terminal</div>
+      </div>
+      <div class="desktop-icon" onclick="openFlappyBird()">
+        <div class="icon" style="background:#f39c12">F</div><div class="label">Flappy</div>
+      </div>
+      <div class="desktop-icon" onclick="openFPSGame()">
+        <div class="icon" style="background:#c0392b">G</div><div class="label">FPS</div>
+      </div>
+      <div class="desktop-icon" onclick="openWindow('Browser')">
+        <div class="icon" style="background:#2980b9">B</div><div class="label">Browser</div>
+      </div>
+      <div class="desktop-icon" onclick="openWindow('Explorer')">
+        <div class="icon" style="background:#8e44ad">E</div><div class="label">Explorer</div>
+      </div>
+    </div>
+
+    <!-- TASKBAR -->
+    <div id="taskbar">
+      <button id="start-btn">Start</button>
+      <div id="minimized-apps"></div>
+      <div id="clock">00:00</div>
+      <div id="user-info"></div>
+      <button id="logout-btn">Logout</button>
+    </div>
+  </div>
+
+  <script>
+    let currentUser = null;
+    let loggedIn = false;
+    let zIndexCounter = 10;
+    let windowCount = 0;
+
+    // --- CLOCK MANAGEMENT ---
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const timeStr = h + ':' + m;
+      
+      document.getElementById('clock').textContent = timeStr;
+      const widgetTime = document.getElementById('widget-time');
+      const widgetDate = document.getElementById('widget-date');
+      if (widgetTime && widgetDate) {
+        widgetTime.textContent = timeStr;
+        const opts = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+        widgetDate.textContent = now.toLocaleDateString(undefined, opts);
+      }
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // --- LOGIN / LOGOUT ---
+    function showOS() {
+      loggedIn = true;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('os-container').style.display = 'block';
+      document.getElementById('user-info').textContent = 'User: ' + currentUser;
+    }
+
+    function showLogin() {
+      loggedIn = false;
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('os-container').style.display = 'none';
+      document.getElementById('login-msg').textContent = '';
+    }
+
+    document.getElementById('login-btn').onclick = function() {
+      const u = document.getElementById('username-input').value.trim();
+      if (!u) {
+        document.getElementById('login-msg').textContent = 'Enter a username.';
+        return;
+      }
+      currentUser = u;
+      localStorage.setItem('shyam_last_user', u);
+      showOS();
+    };
+
+    document.getElementById('logout-btn').onclick = function() {
+      currentUser = null;
+      showLogin();
+    };
+
+    const lastUser = localStorage.getItem('shyam_last_user');
+    if (lastUser) {
+      document.getElementById('username-input').value = lastUser;
+    }
+
+    // --- EXTERNAL GAMES ---
+    function openFlappyBird() { window.open('https://coderrcboy.github.io/flappybird./', '_blank'); }
+    function openFPSGame() { window.open('https://coderrcboy.github.io/FPS-game/', '_blank'); }
+
+    // --- WINDOW MANAGEMENT ---
+    function openWindow(appName) {
+      if (!loggedIn) return;
+
+      const win = document.createElement('div');
+      win.className = 'window';
+      win.dataset.appName = appName;
+      const winId = 'win' + windowCount++;
+      win.dataset.windowId = winId;
+      win.style.left = (50 + Math.random() * 80) + 'px';
+      win.style.top = (50 + Math.random() * 80) + 'px';
+      win.style.zIndex = ++zIndexCounter;
+
+      if (appName === 'Browser') {
+        win.classList.add('browser-full');
+      }
+
+      const titleBar = document.createElement('div');
+      titleBar.className = 'title-bar';
+      
+      const title = document.createElement('div');
+      title.className = 'title';
+      title.textContent = appName;
+
+      const controls = document.createElement('div');
+      controls.className = 'controls';
+
+      const minBtn = document.createElement('button');
+      minBtn.className = 'control-btn min-btn';
+      minBtn.onclick = function(e) { e.stopPropagation(); minimizeWindow(win); };
+
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'control-btn close-btn';
+      closeBtn.onclick = function(e) {
+        e.stopPropagation();
+        removeTaskButton(win);
+        win.remove();
+      };
+
+      controls.appendChild(minBtn);
+      controls.appendChild(closeBtn);
+      titleBar.appendChild(title);
+      titleBar.appendChild(controls);
+
+      const content = document.createElement('div');
+      content.className = 'content';
+      
+      win.appendChild(titleBar);
+      win.appendChild(content);
+      document.getElementById('desktop').appendChild(win);
+
+      win.onmousedown = function() { win.style.zIndex = ++zIndexCounter; };
+      makeDraggable(win, titleBar);
+
+      // Render content dynamically based on App
+      renderAppContent(appName, winId, content);
+    }
+
+    function minimizeWindow(win) {
+      win.style.display = 'none';
+      const taskButton = document.createElement('button');
+      taskButton.className = 'minimized-btn';
+      taskButton.textContent = win.dataset.appName;
+      taskButton.dataset.windowId = win.dataset.windowId;
+      taskButton.onclick = function() {
+        win.style.display = 'flex';
+        win.style.zIndex = ++zIndexCounter;
+        taskButton.remove();
+      };
+      document.getElementById('minimized-apps').appendChild(taskButton);
+    }
+
+    function removeTaskButton(win) {
+      const buttons = document.querySelectorAll('.minimized-btn');
+      buttons.forEach(btn => {
+        if (btn.dataset.windowId === win.dataset.windowId) btn.remove();
+      });
+    }
+
+    // --- APP CONTENT RENDERERS ---
+    function renderAppContent(appName, winId, container) {
+      if (appName === 'About') {
+        container.innerHTML = `
+          <h3 style="margin-top:0">Shyam Web OS</h3>
+          <p>A lightweight operating system interface.</p>
+          <p>Built with HTML, CSS, and JavaScript.</p>
+        `;
+      } 
+      else if (appName === 'Notes') {
+        const savedNotes = localStorage.getItem('shyam_notes_' + currentUser) || '';
+        container.innerHTML = `
+          <h3 style="margin-top:0">Notes</h3>
+          <textarea id="notes-area-${winId}" class="notes-area" placeholder="Type notes here... (Ctrl+S to save)">${escapeHtml(savedNotes)}</textarea>
+          <button id="save-notes-${winId}" style="margin-top:6px;padding:4px 8px;cursor:pointer;">Save</button>
+        `;
+        
+        const area = container.querySelector(`#notes-area-${winId}`);
+        const btn = container.querySelector(`#save-notes-${winId}`);
+        
+        function saveNotes() {
+          localStorage.setItem('shyam_notes_' + currentUser, area.value);
+          alert('Notes saved to LocalStorage!');
+        }
+        
+        btn.onclick = saveNotes;
+        area.addEventListener('keydown', function(e) {
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+            e.preventDefault();
+            saveNotes();
+          }
+        });
+      } 
+      else if (appName === 'Terminal') {
+        container.innerHTML = `
+          <h3 style="margin-top:0">Terminal</h3>
+          <div class="terminal-window">
+            <div>shyam@webos:~$ echo "Welcome to Web OS"</div>
+            <div>Welcome to Web OS</div>
+            <div>shyam@webos:~$ _</div>
+          </div>
+        `;
+      } 
+      else if (appName === 'Browser') {
+        container.innerHTML = `
+          <div style="display:flex;flex-direction:column;height:100%;">
+            <div style="display:flex;gap:6px;padding:4px;background:#162433;">
+              <input id="url-${winId}" type="text" value="https://google.com" style="flex:1;padding:4px;background:#0f1720;color:#fff;border:1px solid #34495e;border-radius:4px;">
+              <button id="go-${winId}" style="padding:4px 8px;background:#3498db;color:#fff;border:none;border-radius:4px;cursor:pointer;">Go</button>
+            </div>
+            <iframe id="frame-${winId}" src="https://www.google.com/webhp?igu=1" style="flex:1;border:none;background:#fff;"></iframe>
+          </div>
+        `;
+        const input = container.querySelector(`#url-${winId}`);
+        const goBtn = container.querySelector(`#go-${winId}`);
+        const frame = container.querySelector(`#frame-${winId}`);
+        
+        function loadUrl() {
+          let url = input.value.trim();
+          if (!url) return;
+          if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+          if (url.indexOf('google.com') === -1) {
+            window.open(url, '_blank');
+          } else {
+            frame.src = url;
+          }
+        }
+        goBtn.onclick = loadUrl;
+        input.onkeydown = function(e) { if (e.key === 'Enter') loadUrl(); };
+      } 
+      else if (appName === 'Explorer') {
+        renderExplorer(container);
+      }
+    }
+
+    function renderExplorer(container) {
+      let files = JSON.parse(localStorage.getItem('shyam_files_' + currentUser) || '[]');
+      const notesContent = localStorage.getItem('shyam_notes_' + currentUser) || '';
+      
+      if (notesContent && files.length === 0) {
+        files = [{ name: 'notes.txt', content: notesContent }];
+        localStorage.setItem('shyam_files_' + currentUser, JSON.stringify(files));
+      }
+
+      let filesHtml = files.map((f, i) => `
+        <div class="file-item" data-idx="${i}">
+          <div class="file-icon">📄</div>
+          <div class="file-name">${escapeHtml(f.name || 'file' + i)}</div>
+        </div>
+      `).join('');
+
+      container.innerHTML = `
+        <h3 style="margin-top:0">File Explorer</h3>
+        <div id="files-list" style="display:flex;flex-wrap:wrap;gap:10px;">${filesHtml || '<p>No files.</p>'}</div>
+        <div style="margin-top:12px;border-top:1px solid #34495e;padding-top:8px;">
+          <input id="new-file-input" type="text" placeholder="File name" style="padding:4px;background:#0f1720;color:#fff;border:1px solid #34495e;border-radius:4px;">
+          <button id="create-file-btn" style="padding:4px 8px;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">Create</button>
+        </div>
+        <div id="editor-area" style="margin-top:12px;border-top:1px solid #34495e;padding-top:8px;"></div>
+      `;
+
+      // File Double Click Handler
+      container.querySelectorAll('.file-item').forEach(item => {
+        item.ondblclick = function() {
+          const idx = parseInt(this.dataset.idx);
+          openFileInExplorer(container, idx);
+        };
+      });
+
+      // Create File Handler
+      container.querySelector('#create-file-btn').onclick = function() {
+        const input = container.querySelector('#new-file-input');
+        let name = input.value.trim();
+        if (!name) name = 'file_' + Date.now() + '.txt';
+        
+        let currentFiles = JSON.parse(localStorage.getItem('shyam_files_' + currentUser) || '[]');
+        currentFiles.push({ name: name, content: '' });
+        localStorage.setItem('shyam_files_' + currentUser, JSON.stringify(currentFiles));
+        renderExplorer(container);
+      };
+    }
+
+    function openFileInExplorer(container, idx) {
+      let files = JSON.parse(localStorage.getItem('shyam_files_' + currentUser) || '[]');
+      const file = files[idx];
+      if (!file) return;
+
+      const editorArea = container.querySelector('#editor-area');
+      editorArea.innerHTML = `
+        <h4 style="margin:0 0 6px 0;">Editing: ${escapeHtml(file.name)}</h4>
+        <textarea id="edit-content" style="width:100%;height:70px;background:#0f1720;color:#fff;border:1px solid #34495e;border-radius:4px;padding:4px;">${escapeHtml(file.content || '')}</textarea>
+        <input id="edit-name" type="text" value="${escapeHtml(file.name)}" style="margin-top:4px;width:100%;padding:4px;background:#0f1720;color:#fff;border:1px solid #34495e;border-radius:4px;">
+        <div style="margin-top:6px;display:flex;gap:6px;">
+          <button id="save-file" style="padding:4px 8px;background:#27ae60;color:#fff;border:none;border-radius:4px;cursor:pointer;">Save</button>
+          <button id="rename-file" style="padding:4px 8px;background:#3498db;color:#fff;border:none;border-radius:4px;cursor:pointer;">Rename</button>
+        </div>
+      `;
+
+      editorArea.querySelector('#save-file').onclick = function() {
+        files[idx].content = editorArea.querySelector('#edit-content').value;
+        localStorage.setItem('shyam_files_' + currentUser, JSON.stringify(files));
+        alert('File content saved!');
+      };
+
+      editorArea.querySelector('#rename-file').onclick = function() {
+        const newName = editorArea.querySelector('#edit-name').value.trim();
+        if (newName) {
+          files[idx].name = newName;
+          localStorage.setItem('shyam_files_' + currentUser, JSON.stringify(files));
+          renderExplorer(container);
+        }
+      };
+    }
+
+    // --- HELPER FUNCTIONS ---
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function makeDraggable(win, handle) {
+      let offsetX = 0, offsetY = 0, dragging = false;
+      handle.onmousedown = function(e) {
+        if (e.target.classList.contains('control-btn')) return;
+        dragging = true;
+        offsetX = e.clientX - win.offsetLeft;
+        offsetY = e.clientY - win.offsetTop;
+        win.style.zIndex = ++zIndexCounter;
+        e.preventDefault();
+      };
+      document.addEventListener('mousemove', function(e) {
+        if (!dragging) return;
+        let x = e.clientX - offsetX;
+        let y = e.clientY - offsetY;
+        const maxX = window.innerWidth - win.offsetWidth - 10;
+        const maxY = window.innerHeight - win.offsetHeight - 50;
+        x = Math.max(0, Math.min(x, maxX));
+        y = Math.max(0, Math.min(y, maxY));
+        win.style.left = x + 'px';
+        win.style.top = y + 'px';
+      });
+      document.addEventListener('mouseup', function() { dragging = false; });
+    }
+
+    // --- INITIALIZATION ---
+    document.getElementById('start-btn').onclick = function() { openWindow('About'); };
+    showLogin();
+  </script>
 </body>
 </html>

@@ -186,3 +186,34 @@ height:calc(100vh - 90px);
 left:20px !important;
 top:20px !important;
 }
+#login-screen{
+position:fixed;
+inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+background:rgba(0,0,0,0.7);
+z-index:9999;
+}
+.login-box{
+background:#1b2735;
+padding:20px;
+border-radius:8px;
+border:1px solid #34495e;
+width:260px;
+text-align:center;
+}
+#login-title{
+margin:0 0 10px 0;
+}
+.clock-widget{
+    position:absolute;
+    top:10px;
+    right:10px;
+    background:#3498db;
+    padding:8px 10px;
+    border-radius:6px;
+    border:1px solid ;
+    text-align:right;
+    
+}
